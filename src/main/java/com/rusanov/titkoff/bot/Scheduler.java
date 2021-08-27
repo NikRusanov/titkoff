@@ -1,60 +1,75 @@
 package com.rusanov.titkoff.bot;
 
 import com.rusanov.titkoff.api.AbstractVisitorViewer;
-import com.rusanov.titkoff.api.Handler;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.tinkoff.invest.openapi.MarketContext;
-import ru.tinkoff.invest.openapi.StreamingContext;
-import ru.tinkoff.invest.openapi.model.rest.Candle;
+import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.model.rest.MarketInstrumentList;
-import ru.tinkoff.invest.openapi.model.rest.SearchMarketInstrument;
+import ru.tinkoff.invest.openapi.model.streaming.CandleInterval;
+import ru.tinkoff.invest.openapi.model.streaming.StreamingEvent;
+import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
 
+import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
 @Component
-public class Scheduler extends AbstractVisitorViewer<Object,Void> {
+public class Scheduler extends AbstractVisitorViewer<Object, Void> {
 
 
-    private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
+    @Autowired
+    private OpenApi api;
 
-    private Map<String, List<Candle>> candles;
+    @Autowired
+    @Qualifier("marketStocks")
+    private MarketInstrumentList marketInstruments;
 
-    public Scheduler() {
-        this(null);
-        candles = new HashMap<>();
+    @Value("#{new Long('${maxSubscriptions}')}")
+    public Long maxSubscription;
+
+    private Map<String, List<StreamingEvent.Candle>> candles = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        CompletableFuture<Void> stopNotifier = new CompletableFuture<Void>();
+        Flowable<StreamingEvent> rxStreaming = Flowable.fromPublisher(api.getStreamingContext());
+        Disposable rxSubscription = rxStreaming
+                .doOnError(stopNotifier::completeExceptionally)
+                .doOnComplete(() -> stopNotifier.complete(null))
+                .forEach(this::handle);
+        marketInstruments.getInstruments().stream().limit(maxSubscription).forEach(
+                marketInstrument -> {
+                    api.getStreamingContext().sendRequest(StreamingRequest.subscribeCandle(marketInstrument.getFigi(), CandleInterval._10MIN));
+                });
     }
-    /**
-     * Base constructor
-     *
-     * @param subHandler - sublayer whose method will be called if no method is found to process the current object in the current layer
-     */
-    public Scheduler(Handler<Object, Void> subHandler) {
-        super(subHandler);
-    }
 
-    public void handle(Candle candle) {
+    public void handle(StreamingEvent.Candle candle) {
         String figi = candle.getFigi();
-        List<Candle> candlesList;
+        List<StreamingEvent.Candle> candlesList;
 
         if (candles.containsKey(figi)) {
             candlesList = candles.get(figi);
-        } else  {
+        } else {
             candlesList = new ArrayList<>();
-            candles.put(figi,candlesList);
+            candles.put(figi, candlesList);
         }
         candlesList.add(candle);
-        log.info(String.valueOf(candle.getTime()));
+        logger.info("{}: {} {}", candle.getFigi(), String.valueOf(candle.getHighestPrice()), candle.getDateTime());
     }
 
 }

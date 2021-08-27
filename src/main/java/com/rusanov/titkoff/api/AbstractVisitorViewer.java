@@ -45,6 +45,10 @@ public class AbstractVisitorViewer <T, R> implements Handler<T, R> {
         this.subHandler = subHandler;
     }
 
+    public AbstractVisitorViewer() {
+        this(null);
+    }
+
     /**
      * Base constructor
      *

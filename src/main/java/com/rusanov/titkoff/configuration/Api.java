@@ -13,20 +13,14 @@ import ru.tinkoff.invest.openapi.okhttp.OkHttpOpenApi;
 @PropertySource("classpath:token.properties")
 @EnableScheduling
 public class Api {
+
     @Bean
-    public OpenApi getApi(
-            //@Value("token.properties") String token, @Value("#{new Boolean('${isSandbox}')}")  Boolean isSandbox
-             ) {
-
-        //TODO TOKEN
-       OpenApi api = new OkHttpOpenApi("", false);
-       if (api.isSandboxMode()) {
-           api.getSandboxContext().performRegistration(new SandboxRegisterRequest()).join();
-       }
-
-       return api;
+    public OpenApi getApi(@Value("${token}") String token, @Value("#{new Boolean('${isSandbox}')}") Boolean isSandbox) {
+        OpenApi api = new OkHttpOpenApi(token, isSandbox);
+        if (api.isSandboxMode())
+            api.getSandboxContext().performRegistration(new SandboxRegisterRequest()).join();
+        return api;
     }
-
 }
 
 
