@@ -1,6 +1,6 @@
 package com.rusanov.titkoff.configuration;
 
-import com.rusanov.titkoff.bot.Scheduler;
+import com.rusanov.titkoff.instuments.InstrumentsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +10,10 @@ import ru.tinkoff.invest.openapi.MarketContext;
 import ru.tinkoff.invest.openapi.OpenApi;
 import ru.tinkoff.invest.openapi.StreamingContext;
 import ru.tinkoff.invest.openapi.model.rest.MarketInstrumentList;
-import ru.tinkoff.invest.openapi.model.rest.SearchMarketInstrument;
-import ru.tinkoff.invest.openapi.model.streaming.CandleInterval;
-import ru.tinkoff.invest.openapi.model.streaming.StreamingRequest;
 
-import java.util.Optional;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.ExecutionException;
 
 @Configuration
@@ -24,6 +23,9 @@ public class Contexts {
 
     @Autowired
     private OpenApi api;
+
+    @Autowired
+    private InstrumentsManager instrumentsManager;
 
     @Bean(name = "marketContext")
     public MarketContext getMarketContext() {
@@ -40,9 +42,11 @@ public class Contexts {
         MarketInstrumentList marketInstrumentList = getMarketContext().getMarketStocks().join();
         marketInstrumentList.getInstruments()
                 .forEach(marketInstrument -> {
+                    String figi = marketInstrument.getFigi();
+                    instrumentsManager.add(figi, marketInstrument);
                     logger.info("=====================================================================");
                     logger.info("\nFIGI={}\nNAME={}\nTICKER={}\nLOT={}\nTYPE={}\nCURRENCY={}\n MIN_PRICE_INC={}\n MIN_QUANTITY={}",
-                            marketInstrument.getFigi(),
+                            figi,
                             marketInstrument.getName(),
                             marketInstrument.getTicker(),
                             marketInstrument.getLot(),
@@ -67,4 +71,11 @@ public class Contexts {
         return getMarketContext().getMarketBonds().get();
     }
 
+    @Bean(name= "configurationMbean")
+    public ConfigurationControllerMBean getConfiguration() throws  Exception {
+        ConfigurationControllerMBean configurationControllerMBean = new ConfigurationController();
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        mBeanServer.registerMBean(configurationControllerMBean, new ObjectName("config", "name", "config"));
+        return  configurationControllerMBean;
+    }
 }
