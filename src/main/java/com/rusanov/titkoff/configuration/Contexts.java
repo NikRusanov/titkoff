@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 @Configuration
 public class Contexts {
 
-    private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(Contexts.class);
 
     @Autowired
     private OpenApi api;
