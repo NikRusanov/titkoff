@@ -3,7 +3,7 @@ package com.rusanov.titkoff.configuration;
 public class ConfigurationController implements ConfigurationControllerMBean {
     private int interval = 2;
     private double sensibility = 1;
-    private int candlesCount  = 10;
+    private int candlesCount  = 1;
 
     @Override
     public int getTimeClearCandlesInterval() {

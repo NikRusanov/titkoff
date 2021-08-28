@@ -75,7 +75,8 @@ public class StocksScrapper extends AbstractVisitorViewer<Object, Void> {
         }
         candlesList.add(candle);
         removeOldCandles(figi);
-        analyzeCandle(figi);
+        if ((candles.get(figi) != null) && !(candles.get(figi).isEmpty()))
+            analyzeCandle(figi);
      //   logger.info("{}: {} {}", candle.getFigi(), String.valueOf(candle.getHighestPrice()), candle.getDateTime());
     }
 
@@ -94,7 +95,7 @@ public class StocksScrapper extends AbstractVisitorViewer<Object, Void> {
 
     private void analyzeCandle(String figi) {
         List<StreamingEvent.Candle> candleList = this.candles.get(figi);
-        int size = candles.size();
+        int size = candleList.size();
         if (size > configuration.getCandlesCount()) {
             candleList = candleList
                 .stream()
@@ -108,11 +109,4 @@ public class StocksScrapper extends AbstractVisitorViewer<Object, Void> {
             }
         }
     }
-
-    @Scheduled(fixedDelay = 1000)
-    public void debug() {
-        logger.info("sensibility: {} | time: {} ", configuration.getSensibility(), configuration.getTimeClearCandlesInterval());
-    }
-
-
 }
