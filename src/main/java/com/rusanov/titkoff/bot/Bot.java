@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.Async;
 public abstract class Bot extends AbstractVisitorViewer<Object, Void> {
 
     @Autowired
-    private HandlersManager handlersManager;
+    protected HandlersManager handlersManager;
 
     @Override
     @Async

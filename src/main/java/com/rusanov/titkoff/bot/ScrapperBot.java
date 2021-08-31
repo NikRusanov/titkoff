@@ -1,6 +1,8 @@
 package com.rusanov.titkoff.bot;
 
+import com.rusanov.titkoff.api.Handler;
 import com.rusanov.titkoff.configuration.ConfigurationControllerMBean;
+import com.rusanov.titkoff.managers.HandlersManager;
 import com.rusanov.titkoff.managers.InstrumentsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,13 +14,14 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ScrapperBot extends Bot {
+public class ScrapperBot extends Bot implements Handler<Object,Void> {
 
     @Autowired
     private ConfigurationControllerMBean configuration;
 
     @Autowired
     private InstrumentsManager instrumentsManager;
+
 
     private Map<String, List<StreamingEvent.Candle>> candles = new HashMap<>();
 
@@ -69,6 +72,9 @@ public class ScrapperBot extends Bot {
                     && 100.0 - percent > configuration.getSensibility()) {
                 MarketInstrument marketInstrument = instrumentsManager.findByFigi(figi);
                 logger.info("Perspective for trading {} with name {}. Open price: {} Closing price: {}", figi, marketInstrument.getName(), openPrice, closingPrice);
+                handlersManager.unsubscribe(figi,this);
+                Handler handler = getSubHandler();
+                handler.handle(marketInstrument);
             }
         }
     }
