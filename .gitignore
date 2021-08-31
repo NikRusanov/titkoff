@@ -1,5 +1,6 @@
 HELP.md
 target/
+!**/src/main/resources/token.properties
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -18,7 +19,7 @@ target/
 *.iws
 *.iml
 *.ipr
-src/main/resources/token.properties
+
 
 ### NetBeans ###
 /nbproject/private/
