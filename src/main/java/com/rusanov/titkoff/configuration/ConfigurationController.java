@@ -1,13 +1,21 @@
 package com.rusanov.titkoff.configuration;
 
 public class ConfigurationController implements ConfigurationControllerMBean {
-    private int interval = 2;
-    private double sensibility = 1;
-    private int candlesCount  = 1;
+
+    private int timeClearCandlesInterval = 1;
+
+    private double sensibility = 2;
+
+    private int candlesCount  = 5;
+
+    private double stockMinimumPrice = 5.0;
+
+    private double stockMaximumPrice = 125.0;
+
 
     @Override
     public int getTimeClearCandlesInterval() {
-        return interval;
+        return timeClearCandlesInterval;
     }
 
     @Override
@@ -22,7 +30,7 @@ public class ConfigurationController implements ConfigurationControllerMBean {
 
     @Override
     public void setTimeClearCandlesInterval(int minutes) {
-        this.interval = minutes;
+        this.timeClearCandlesInterval = minutes;
 
     }
 
@@ -34,5 +42,25 @@ public class ConfigurationController implements ConfigurationControllerMBean {
     @Override
     public void setCandlesCount(int count) {
         this.candlesCount =  count;
+    }
+
+    @Override
+    public double getStockMinimumPrice() {
+        return stockMinimumPrice;
+    }
+
+    @Override
+    public void setStockMinimumPrice(double stockMinimumPrice) {
+        this.stockMinimumPrice = stockMinimumPrice;
+    }
+
+    @Override
+    public double getStockMaximumPrice() {
+        return stockMaximumPrice;
+    }
+
+    @Override
+    public void setStockMaximumPrice(double stockMaximumPrice) {
+        this.stockMaximumPrice = stockMaximumPrice;
     }
 }

@@ -20,10 +20,10 @@ import static org.junit.Assert.assertEquals;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-class StocksScrapperTest {
+class StocksInterceptorTest {
 
     @Autowired
-    StocksScrapper scrapper;
+    StocksInterceptor scrapper;
     final String fakeFigi="XXXXXXXXXXX";
     @Test
     public void  removeOldCandlesTest() {
