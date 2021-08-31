@@ -18,6 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
+src/main/resources/token.properties
 
 ### NetBeans ###
 /nbproject/private/
